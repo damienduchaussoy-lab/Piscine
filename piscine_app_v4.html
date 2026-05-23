@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ma Piscine</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f4f2; color: #1a1a1a; }
+.app { max-width: 420px; margin: 0 auto; background: white; min-height: 100vh; display: flex; flex-direction: column; }
+.header { padding: 1.25rem 1rem 1rem; border-bottom: 1px solid #e5e5e5; }
+.header h1 { font-size: 18px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.header .date { font-size: 12px; color: #888; margin-top: 3px; }
+.nav { display: flex; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; background: white; z-index: 5; }
+.nav button { flex: 1; padding: 10px 2px; font-size: 11px; background: none; border: none; cursor: pointer; color: #999; border-bottom: 2px solid transparent; font-family: inherit; }
+.nav button.active { color: #1a1a1a; border-bottom: 2px solid #1D9E75; font-weight: 500; }
+.section { display: none; padding: 1rem; }
+.section.active { display: block; }
+.section-title { font-size: 11px; font-weight: 500; color: #999; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+
+.param-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1rem; }
+.param-card { border: 1px solid #eee; border-radius: 12px; padding: 12px; }
+.param-card.ok { border-left: 3px solid #1D9E75; }
+.param-card.warn { border-left: 3px solid #EF9F27; }
+.param-card.danger { border-left: 3px solid #E24B4A; }
+.param-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+.param-value-row { display: flex; align-items: baseline; gap: 5px; margin-bottom: 4px; }
+.param-value { font-size: 24px; font-weight: 500; }
+.param-unit { font-size: 12px; color: #aaa; }
+.param-status { font-size: 11px; font-weight: 500; }
+.status-ok { color: #0F6E56; } .status-warn { color: #854F0B; } .status-danger { color: #A32D2D; } .status-neutral { color: #aaa; }
+
+.input-group { margin-bottom: 13px; }
+.input-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; }
+.input-group input { width: 100%; padding: 10px 12px; font-size: 16px; border: 1px solid #e0e0e0; border-radius: 9px; font-family: inherit; background: #fafafa; }
+.input-group input:focus { outline: none; border-color: #1D9E75; background: white; }
+
+.date-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding: 10px 12px; background: #f8f8f8; border-radius: 9px; cursor: pointer; border: 1px solid #ebebeb; }
+.date-toggle input[type=checkbox] { width: 18px; height: 18px; accent-color: #1D9E75; cursor: pointer; }
+.date-toggle label { font-size: 13px; color: #555; cursor: pointer; }
+.date-manual { display: none; margin-bottom: 12px; }
+.date-manual.show { display: block; }
+.date-auto-display { font-size: 13px; color: #555; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; padding: 9px 12px; background: #f0faf6; border-radius: 9px; border: 1px solid #c6e8d8; }
+
+.btn-primary { width: 100%; padding: 13px; background: #1D9E75; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-primary:active { opacity: 0.85; }
+.btn-secondary { width: 100%; padding: 11px; background: none; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; color: #555; cursor: pointer; font-family: inherit; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-secondary:active { background: #f5f5f5; }
+
+.actions-list { display: flex; flex-direction: column; gap: 10px; }
+.action-card { border: 1px solid #eee; border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.action-card:active { background: #f9f9f9; }
+.action-header { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+.action-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.action-name { font-size: 14px; font-weight: 500; }
+.action-desc { font-size: 12px; color: #999; margin-left: 44px; }
+.action-dose { font-size: 12px; font-weight: 500; margin-left: 44px; margin-top: 4px; }
+
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.history-item { border: 1px solid #eee; border-radius: 12px; padding: 12px 14px; }
+.history-date { font-size: 12px; color: #777; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.history-params { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.history-param { text-align: center; }
+.history-param .hp-val { font-size: 14px; font-weight: 500; }
+.history-param .hp-label { font-size: 10px; color: #aaa; }
+.badge-past { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: #E6F1FB; color: #185FA5; }
+.badge-today { font-size: 10px; color: #1D9E75; }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border-radius: 16px 16px 0 0; padding: 1.5rem; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
+.modal h3 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: #999; margin-bottom: 1rem; }
+.modal-field { margin-bottom: 12px; }
+.modal-field label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+.modal-field input { width: 100%; padding: 10px 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 9px; font-family: inherit; }
+.modal-actions { display: flex; gap: 8px; margin-top: 1rem; }
+.modal-actions button { flex: 1; padding: 11px; border-radius: 10px; font-family: inherit; font-size: 14px; cursor: pointer; border: 1px solid #ddd; background: #f5f5f5; color: #1a1a1a; }
+
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); color: white; padding: 10px 18px; border-radius: 20px; font-size: 13px; display: none; z-index: 200; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.toast.show { display: block; }
+.empty-state { text-align: center; padding: 2.5rem 1rem; color: #aaa; font-size: 14px; }
+.alert-box { margin-bottom: 14px; border-radius: 10px; padding: 10px 12px; }
+.alert-warn { background: #FAEEDA; border: 1px solid #FAC775; }
+.alert-ok { background: #EAF3DE; border: 1px solid #C0DD97; }
+
+.info-box { background: #f8f8f8; border: 1px solid #ebebeb; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.info-box p { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 10px; }
+.info-box p:last-child { margin-bottom: 0; }
+textarea.import-area { width: 100%; height: 100px; padding: 10px; font-size: 12px; border: 1px solid #ddd; border-radius: 9px; font-family: monospace; resize: vertical; margin-bottom: 8px; background: #fafafa; }
+textarea.import-area:focus { outline: none; border-color: #1D9E75; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1><i class="ti ti-droplet" style="color:#1D9E75"></i> Ma Piscine</h1>
+    <div class="date" id="header-date"></div>
+  </div>
+
+  <nav class="nav">
+    <button class="active" onclick="showSection('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Tableau</button>
+    <button onclick="showSection('saisie',this)"><i class="ti ti-edit"></i> Saisie</button>
+    <button onclick="showSection('actions',this)"><i class="ti ti-flask"></i> Actions</button>
+    <button onclick="showSection('historique',this)"><i class="ti ti-history"></i> Historique</button>
+    <button onclick="showSection('donnees',this)"><i class="ti ti-database"></i> Données</button>
+  </nav>
+
+  <div id="dashboard" class="section active">
+    <div id="dashboard-content"></div>
+  </div>
+
+  <div id="saisie" class="section">
+    <div class="section-title">Relevé</div>
+
+    <div class="date-toggle" onclick="toggleManualDate()">
+      <input type="checkbox" id="manual-date-toggle" onchange="toggleManualDate()" onclick="event.stopPropagation()">
+      <label for="manual-date-toggle"><i class="ti ti-calendar"></i> Saisir une date manuellement</label>
+    </div>
+    <div class="date-manual" id="date-manual-section">
+      <div class="input-group">
+        <label>Date du relevé</label>
+        <input type="date" id="input-date">
+      </div>
+    </div>
+    <div class="date-auto-display" id="date-auto-display">
+      <i class="ti ti-calendar-check" style="color:#1D9E75"></i>
+      <span id="date-auto-label"></span>
+    </div>
+
+    <div class="input-group">
+      <label>pH <span style="font-size:11px;color:#bbb">(idéal : 7,2 – 7,6)</span></label>
+      <input type="number" id="input-ph" min="0" max="14" step="0.1" placeholder="ex. 7.4">
+    </div>
+    <div class="input-group">
+      <label>Chlore libre <span style="font-size:11px;color:#bbb">(mg/L – idéal : 1 – 3)</span></label>
+      <input type="number" id="input-chlore" min="0" max="20" step="0.1" placeholder="ex. 1.5">
+    </div>
+    <div class="input-group">
+      <label>Alcalinité (TAC) <span style="font-size:11px;color:#bbb">(mg/L – idéal : 80 – 120)</span></label>
+      <input type="number" id="input-tac" min="0" max="400" step="1" placeholder="ex. 100">
+    </div>
+    <div class="input-group">
+      <label>Stabilisateur <span style="font-size:11px;color:#bbb">(mg/L – idéal : 30 – 50)</span></label>
+      <input type="number" id="input-stab" min="0" max="200" step="1" placeholder="ex. 40">
+    </div>
+    <button class="btn-primary" onclick="saveReading()">
+      <i class="ti ti-device-floppy"></i> Enregistrer le relevé
+    </button>
+  </div>
+
+  <div id="actions" class="section">
+    <div class="section-title">Corrections disponibles</div>
+    <div class="actions-list" id="actions-list"></div>
+  </div>
+
+  <div id="historique" class="section">
+    <div class="section-title">Relevés enregistrés</div>
+    <div id="history-list" class="history-list"></div>
+  </div>
+
+  <div id="donnees" class="section">
+    <div class="section-title">Sauvegarde &amp; restauration</div>
+
+    <div class="info-box">
+      <p><i class="ti ti-download" style="color:#1D9E75"></i> <strong>Exporter</strong> — Télécharge un fichier JSON avec tous tes relevés. Sauvegarde-le sur Google Drive ou envoie-le par mail pour ne pas le perdre.</p>
+      <button class="btn-primary" onclick="exportData()"><i class="ti ti-download"></i> Télécharger mes relevés (JSON)</button>
+    </div>
+
+    <div class="info-box">
+      <p><i class="ti ti-upload" style="color:#185FA5"></i> <strong>Importer</strong> — Colle ici le contenu d'un fichier JSON précédemment exporté pour restaurer ou fusionner tes données.</p>
+      <textarea class="import-area" id="import-area" placeholder='Colle le contenu JSON ici...'></textarea>
+      <button class="btn-secondary" onclick="importData()"><i class="ti ti-upload"></i> Importer les données</button>
+    </div>
+
+    <div class="info-box">
+      <p><i class="ti ti-trash" style="color:#A32D2D"></i> <strong>Effacer</strong> — Supprime tous les relevés enregistrés sur cet appareil. Cette action est irréversible.</p>
+      <button class="btn-secondary" style="color:#A32D2D;border-color:#f7c1c1" onclick="clearData()"><i class="ti ti-trash"></i> Effacer toutes les données</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+    <div class="modal" id="modal-content"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const STORAGE_KEY = 'pool_readings_v1';
+const POOL_VOL = 25; // 6m × 3m × 1,4m = 25,m³
+
+const PARAMS = {
+  ph:     { label:'pH',            unit:'',     min:7.2, max:7�`  decimals:1 },
+  chlore: { label:'Chlore',        unit:'mg/L', min:1,   max:3,    decimals:1 },
+  tac:    { label:'TAC',           unit:'mg/L', min:80,  max:120,  decimals:0 },
+  stab:   { label:'Stabilisateur', unit:'mg/L', min:30,  max:50,   decimals:0 }
+};
+
+const ACTIONS = [
+  { id:'ph_moins',     name:'Réducteur de pH',         product:'pH minus (acide)',           icon:'ti-arrow-down',    color:'#E6F1FB', iconColor:'#185FA5', desc:'pH supérieur à 7,6',                   trigger:r=>r.ph>7.6,    dose:(r,v)=>Math.round((r.ph-7.6)*v*0.18)+' g pour '+v+' m³' },
+  { id:'ph_plus',      name:'Rehausseur de pH',         product:'pH plus (soude)',            icon:'ti-arrow-up',      color:'#FAECE7', iconColor:'#993C1D', desc:'pH inférieur à 7,2',                   trigger:r=>r.ph<7.2,    dose:(r,v)=>Math.round((7.2-r.ph)*v*0.18)+' g pour '+v+' m³' },
+  { id:'chlore_choc',  name:'Chlore choc',              product:'Chlore granulés / liquide', icon:'ti-bolt',          color:'#EAF3DE', iconColor:'#3B6D11', desc:'Chlore libre inférieur à 1 mg/L',       trigger:r=>r.chlore<1,  dose:(r,v)=>Math.round((1-r.chlore)*v*10)+' g pour '+v+' m³' },
+  { id:'chlore_pause', name:'Réduire le chlore',        product:'Aérer, ne pas ajouter',     icon:'ti-wind',          color:'#FBEAF0', iconColor:'#993556', desc:'Chlore trop élevé (> 3 mg/L)',         trigger:r=>r.chlore>3,  dose:()=>'Arrêter la production pendant 24–48h' },
+  { id:'tac_up',       name:"Rehausser l'alcalinité",  product:'Bicarbonate de soude',       icon:'ti-trending-up',   color:'#FAEEDA', iconColor:'#854F0B', desc:'TAC inférieur à 80 mg/L',              trigger:r=>r.tac<80,    dose:(r,v)=>Math.round((80-r.tac)*v*0.016)+' g pour '+v+' m³' },
+  { id:'tac_down',     name:"Réduire l'alcalinité",    product:'Acide chlorhydrique dilué',  icon:'ti-trending-down', color:'#FCEBEB', iconColor:'#A32D2D', desc:'TAC supérieur à 120 mg/L',             trigger:r=>r.tac>120,   dose:(r,v)=>Math.round((r.tac-120)*v*0.012)+' mL pour '+v+' m³' },
+  { id:'stab_add',     name:'Ajouter du stabilisateur',product:'Acide cyanurique',           icon:'ti-shield',        color:'#E1F5EE', iconColor:'#0F6E56', desc:'Stabilisateur inférieur à 30 mg/L',    trigger:r=>r.stab<30,   dose:(r,v)=>((30-r.stab)*v*0.001).toFixed(1)+' kg pour '+v+' m³' },
+  { id:'stab_dillute', name:"Diluer l'eau",             product:'Vidange partielle',          icon:'ti-droplet-off',   color:'#F1EFE8', iconColor:'#5F5E5A', desc:'Stabilisateur trop élevé (> 50 mg/L)', trigger:r=>r.stab>50,   dose:(r,v)=>'Vidanger ~'+Math.round(v*(r.stab-50)/r.stab/5)*5+' % du bassin' }
+];
+
+function load() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); } catch { return []; } }
+function save(arr) { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+function todayISO() { return new Date().toISOString().split('T')[0]; }
+function isToday(iso) { return iso === todayISO(); }
+function formatDate(iso) { return new Date(iso+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long',year:'numeric'}); }
+function lastReading() { const r=load(); return r.length?[...r].sort((a,b)=>a.date.localeCompare(b.date)).pop():null; }
+function getStatus(key,val) {
+  const p=PARAMS[key];
+  if (val===null||val===undefined||isNaN(val)) return 'neutral';
+  if (val>=p.min&&val<=p.max) return 'ok';
+  return Math.min(Math.abs(val<p.min?val-p.min:val-p.max)/(p.max-p.min),1)>0.3?'danger':'warn';
+}
+function statusLabel(st) { return {ok:'Optimal',warn:'Attention',danger:'Hors norme',neutral:'—'}[st]; }
+
+function renderDashboard() {
+  const last=lastReading(), el=document.getElementById('dashboard-content');
+  if (!last) { el.innerHTML='<div class="empty-state"><i class="ti ti-droplet" style="font-size:44px;color:#ddd;display:block;margin-bottom:12px"></i>Aucun relevé enregistré.<br>Saisissez votre premier relevé !</div>'; return; }
+  const grid=Object.entries(PARAMS).map(([k,p])=>{
+    const val=last[k],st=getStatus(k,val),disp=(val!==null&&!isNaN(val))?Number(val).toFixed(p.decimals):'—';
+    return `<div class="param-card ${st}"><div class="param-label">${p.label}</div><div class="param-value-row"><span class="param-value">${disp}</span><span class="param-unit">${p.unit}</span></div><div class="param-status status-${st}">${statusLabel(st)}</div></div>`;
+  }).join('');
+  const alerts=ACTIONS.filter(a=>a.trigger(last));
+  const alertHtml=alerts.length>0
+    ?`<div class="alert-box alert-warn"><div style="font-size:12px;font-weight:500;color:#854F0B;margin-bottom:4px"><i class="ti ti-alert-triangle"></i> ${alerts.length} action${alerts.length>1?'s':''} recommandée${alerts.length>1?'s':''}</div>${alerts.map(a=>`<div style="font-size:12px;color:#854F0B;padding-top:2px">• ${a.name}</div>`).join('')}</div>`
+    :`<div class="alert-box alert-ok"><div style="font-size:12px;font-weight:500;color:#3B6D11"><i class="ti ti-circle-check"></i> Tous les paramètres sont dans les normes</div></div>`;
+  const pastBadge=!isToday(last.date)?`<span class="badge-past">relevé passé</span>`:'';
+  el.innerHTML=`<div style="font-size:12px;color:#777;margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:6px"><i class="ti ti-calendar"></i> Dernier relevé : ${formatDate(last.date)} ${pastBadge}</div>${alertHtml}<div class="section-title">Paramètres</div><div class="param-grid">${grid}</div>`;
+}
+
+function renderActions() {
+  const last=lastReading(),el=document.getElementById('actions-list');
+  if (!last) { el.innerHTML='<div class="empty-state">Saisissez d\'abord un relevé.</div>'; return; }
+  el.innerHTML=`<div style="font-size:12px;color:#aaa;margin-bottom:10px">Dosages pour <strong style="color:#555">${POOL_VOL} m³</strong> — basé sur le dernier relevé.</div>`
+    +ACTIONS.map(a=>{
+      const active=a.trigger(last);
+      return `<div class="action-card" onclick="openAction('${a.id}')"><div class="action-header"><div class="action-icon" style="background:${a.color}"><i class="ti ${a.icon}" style="color:${a.iconColor}"></i></div><div><div class="action-name">${a.name}</div><div style="font-size:11px;color:${active?'#A32D2D':'#ccc'};margin-top:1px">${active?'⚠ Recommandé':'Non nécessaire'}</div></div></div><div class="action-desc">${a.desc}</div><div class="action-dose" style="color:${a.iconColor}">${a.dose(last,POOL_VOL)}</div></div>`;
+    }).join('');
+}
+
+function renderHistory() {
+  const readings=load(),el=document.getElementById('history-list');
+  if (!readings.length) { el.innerHTML='<div class="empty-state">Aucun relevé enregistré.</div>'; return; }
+  el.innerHTML=[...readings].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>{
+    const params=Object.entries(PARAMS).map(([k,p])=>{
+      const val=r[k],st=getStatus(k,val),disp=(val!==null&&!isNaN(val))?Number(val).toFixed(p.decimals):'—';
+      const color=st==='ok'?'#0F6E56':st==='warn'?'#854F0B':st==='danger'?'#A32D2D':'#333';
+      return `<div class="history-param"><div class="hp-val" style="color:${color}">${disp}</div><div class="hp-label">${p.label}</div></div>`;
+    }).join('');
+    const badge=isToday(r.date)?`<span class="badge-today"><i class="ti ti-circle-check"></i> aujourd'hui</span>`:`<span class="badge-past">historique</span>`;
+    return `<div class="history-item"><div class="history-date"><span><i class="ti ti-calendar"></i> ${formatDate(r.date)}</span>${badge}</div><div class="history-params">${params}</div></div>`;
+  }).join('');
+}
+
+function toggleManualDate() {
+  const cb=document.getElementById('manual-date-toggle');
+  const sec=document.getElementById('date-manual-section');
+  const auto=document.getElementById('date-auto-display');
+  if (cb.checked) { sec.classList.add('show'); auto.style.display='none'; if(!document.getElementById('input-date').value) document.getElementById('input-date').value=todayISO(); }
+  else { sec.classList.remove('show'); auto.style.display='flex'; }
+}
+
+function saveReading() {
+  const ph=parseFloat(document.getElementById('input-ph').value);
+  const chlore=parseFloat(document.getElementById('input-chlore').value);
+  const tac=parseFloat(document.getElementById('input-tac').value);
+  const stab=parseFloat(document.getElementById('input-stab').value);
+  if ([ph,chlore,tac,stab].every(isNaN)) { showToast('⚠ Saisissez au moins un paramètre','#EF9F27'); return; }
+  const useManual=document.getElementById('manual-date-toggle').checked;
+  let dateVal=todayISO();
+  if (useManual) { const v=document.getElementById('input-date').value; if(!v){showToast('⚠ Saisissez une date valide','#EF9F27');return;} dateVal=v; }
+  const readings=load();
+  readings.push({date:dateVal,ph:isNaN(ph)?null:ph,chlore:isNaN(chlore)?null:chlore,tac:isNaN(tac)?null:tac,stab:isNaN(stab)?null:stab});
+  save(readings);
+  ['input-ph','input-chlore','input-tac','input-stab'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('manual-date-toggle').checked=false;
+  document.getElementById('date-manual-section').classList.remove('show');
+  document.getElementById('date-auto-display').style.display='flex';
+  renderDashboard(); renderActions(); renderHistory();
+  showToast(isToday(dateVal)?'Relevé enregistré ✓':'Relevé du '+formatDate(dateVal)+' enregistré ✓');
+  showSection('dashboard',document.querySelector('.nav button'));
+}
+
+function openAction(id) {
+  const a=ACTIONS.find(x=>x.id===id),last=lastReading(),dose=last?a.dose(last,POOL_VOL):'—';
+  document.getElementById('modal-content').innerHTML<`<h3>${a.name}</h3><div class="modal-sub">${a.product}</div><div style="background:#f8f8f8;border-radius:9px;padding:10px 12px;margin-bottom:1rem"><div style="font-size:12px;color:#aaa;margin-bottom:2px">Dosage recommandé</div><div style="font-size:16px;font-weight:500" id="modal-dose-result">${dose}</div></div><div class="modal-field"><label>Adapter au volume du bassin (m³)</label><input type="number" id="modal-vol" value="${POOL_VOL}" min="1" max="500" oninput="updateModalDose('${id}')"></div><div style="font-size:12px;color:#aaa;line-height:1.6;padding:10px 0;border-top:1px solid #f0f0f0;margin-top:8px"><strong style="color:#555">Mode d'emploi :</strong> Diluer dans un seau d'eau avant ajout. Ne jamais mélanger les produits. Attendre 4h avant baignade.</div><div class="modal-actions"><button onclick="closeModal()">Fermer</button></div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function updateModalDose(id) {
+  const vol=parseFloat(document.getElementById('modal-vol').value)||POOL_VOL;
+  const a=ACTIONS.find(x=>x.id===id),last=lastReading();
+  if(last) document.getElementById('modal-dose-result').textContent=a.dose(last,vol);
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
+
+function exportData() {
+  const readings=load();
+  if (!readings.length) { showToast('Aucune donnée à exporter','#EF9F27'); return; }
+  const blob=new Blob([JSON.stringify(readings,null,2)],{type:'application/json'});
+  const url=URL/createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='piscine_releves_'+todayISO()+'.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Fichier téléchargé ✓');
+}
+
+function importData() {
+  const text=document.getElementById('import-area').value.trim();
+  if (!text) { showToast('Colle ton JSON dans la zone de texte','#EF9F27'); return; }
+  try {
+    const parsed=JSON.parse(text);
+    if (!Array.isArray(parsed)) throw new Error();
+    const existing=load();
+    const keys=new Set(existing.map(r=>r.date+'|'+r.ph+'|'+r.chlore+'|'+r.tac+'|'+r.stab));
+    let added=0;
+    parsed.forEach(r=>{ const k=r.date+'|'+r.ph+'|'+r.chlore+'|'+r.tac+'|'+r.stab; if(!keys.has(k)){existing.push(r);added++;} });
+    save(existing);
+    document.getElementById('import-area').value='';
+    renderDashboard(); renderActions(); renderHistory();
+    showToast(added+' relevé(s) importé(s) ✓');
+  } catch { showToast('⚠ JSON invalide','#A32D2D'); }
+}
+
+function clearData() {
+  if (!confirm('Supprimer tous les relevés enregistrés sur cet appareil ?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  renderDashboard(); renderActions(); renderHistory();
+  showToast('Données effacées');
+}
+
+function showToast(msg,color) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=color||'#1D9E75';
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function showSection(id,btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+const today=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('header-date').textContent=today;
+document.getElementById('date-auto-label').textContent="Aujourd'hui — "+today;
+renderDashboard(); renderActions(); renderHistory();
+</script>
+</body>
+</html>
