@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ma Piscine</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f4f2; color: #1a1a1a; }
+.app { max-width: 420px; margin: 0 auto; background: white; min-height: 100vh; }
+.header { padding: 1.25rem 1rem 1rem; border-bottom: 1px solid #e5e5e5; }
+.header h1 { font-size: 18px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.header .date { font-size: 12px; color: #888; margin-top: 3px; }
+.nav { display: flex; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; background: white; z-index: 5; }
+.nav button { flex: 1; padding: 10px 1px; font-size: 10px; background: none; border: none; cursor: pointer; color: #999; border-bottom: 2px solid transparent; font-family: inherit; }
+.nav button.active { color: #1a1a1a; border-bottom: 2px solid #1D9E75; font-weight: 500; }
+.section { display: none; padding: 1rem; }
+.section.active { display: block; }
+.section-title { font-size: 11px; font-weight: 500; color: #999; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+.param-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1rem; }
+.param-card { border: 1px solid #eee; border-radius: 12px; padding: 12px; }
+.param-card.ok { border-left: 3px solid #1D9E75; }
+.param-card.warn { border-left: 3px solid #EF9F27; }
+.param-card.danger { border-left: 3px solid #E24B4A; }
+.param-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+.param-value-row { display: flex; align-items: baseline; gap: 5px; margin-bottom: 4px; }
+.param-value { font-size: 24px; font-weight: 500; }
+.param-unit { font-size: 12px; color: #aaa; }
+.param-status { font-size: 11px; font-weight: 500; }
+.status-ok { color: #0F6E56; } .status-warn { color: #854F0B; } .status-danger { color: #A32D2D; } .status-neutral { color: #aaa; }
+.input-group { margin-bottom: 13px; }
+.input-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; }
+.input-group input { width: 100%; padding: 10px 12px; font-size: 16px; border: 1px solid #e0e0e0; border-radius: 9px; font-family: inherit; background: #fafafa; }
+.input-group input:focus { outline: none; border-color: #1D9E75; background: white; }
+.temp-row { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; padding: 10px 12px; background: #f0f4ff; border-radius: 9px; border: 1px solid #d0d9f5; }
+.temp-row label { font-size: 13px; color: #555; flex: 1; }
+.temp-row input { width: 65px; padding: 8px 10px; font-size: 16px; border: 1px solid #d0d9f5; border-radius: 8px; font-family: inherit; background: white; text-align: center; }
+.temp-row input:focus { outline: none; border-color: #1D9E75; }
+.date-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding: 10px 12px; background: #f8f8f8; border-radius: 9px; cursor: pointer; border: 1px solid #ebebeb; }
+.date-toggle input[type=checkbox] { width: 18px; height: 18px; accent-color: #1D9E75; cursor: pointer; }
+.date-toggle label { font-size: 13px; color: #555; cursor: pointer; }
+.date-manual { display: none; margin-bottom: 12px; }
+.date-manual.show { display: block; }
+.date-auto-display { font-size: 13px; color: #555; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; padding: 9px 12px; background: #f0faf6; border-radius: 9px; border: 1px solid #c6e8d8; }
+.btn-primary { width: 100%; padding: 13px; background: #1D9E75; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-primary:active { opacity: 0.85; }
+.btn-secondary { width: 100%; padding: 11px; background: none; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; color: #555; cursor: pointer; font-family: inherit; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.actions-list { display: flex; flex-direction: column; gap: 10px; }
+.action-card { border: 1px solid #eee; border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.action-card:active { background: #f9f9f9; }
+.action-header { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+.action-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.action-name { font-size: 14px; font-weight: 500; }
+.action-desc { font-size: 12px; color: #999; margin-left: 44px; }
+.action-dose { font-size: 12px; font-weight: 500; margin-left: 44px; margin-top: 4px; }
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.history-item { border: 1px solid #eee; border-radius: 12px; padding: 12px 14px; }
+.history-date { font-size: 12px; color: #777; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.history-params { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 8px; }
+.history-param { text-align: center; }
+.history-param .hp-val { font-size: 13px; font-weight: 500; }
+.history-param .hp-label { font-size: 10px; color: #aaa; }
+.history-actions { display: flex; gap: 6px; }
+.btn-edit { flex: 1; padding: 7px; font-size: 12px; background: none; border: 1px solid #e0e0e0; border-radius: 8px; color: #555; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.btn-delete { padding: 7px 10px; font-size: 12px; background: none; border: 1px solid #f7c1c1; border-radius: 8px; color: #A32D2D; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; }
+.badge-past { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: #E6F1FB; color: #185FA5; }
+.badge-today { font-size: 10px; color: #1D9E75; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border-radius: 16px 16px 0 0; padding: 1.5rem; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+.modal h3 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: #999; margin-bottom: 1rem; }
+.modal-field { margin-bottom: 12px; }
+.modal-field label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+.modal-field input { width: 100%; padding: 10px 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 9px; font-family: inherit; background: #fafafa; }
+.modal-field input:focus { outline: none; border-color: #1D9E75; background: white; }
+.modal-actions { display: flex; gap: 8px; margin-top: 1rem; }
+.modal-actions button { flex: 1; padding: 11px; border-radius: 10px; font-family: inherit; font-size: 14px; cursor: pointer; border: 1px solid #ddd; background: #f5f5f5; color: #1a1a1a; }
+.modal-actions .btn-confirm { background: #1D9E75; color: white; border-color: transparent; }
+.modal-actions .btn-danger { background: #A32D2D; color: white; border-color: transparent; }
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); color: white; padding: 10px 18px; border-radius: 20px; font-size: 13px; display: none; z-index: 200; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.toast.show { display: block; }
+.empty-state { text-align: center; padding: 2.5rem 1rem; color: #aaa; font-size: 14px; }
+.alert-box { margin-bottom: 14px; border-radius: 10px; padding: 10px 12px; }
+.alert-warn { background: #FAEEDA; border: 1px solid #FAC775; }
+.alert-ok { background: #EAF3DE; border: 1px solid #C0DD97; }
+.info-box { background: #f8f8f8; border: 1px solid #ebebeb; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.info-box p { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 10px; }
+.info-box p:last-child { margin-bottom: 0; }
+textarea.import-area { width: 100%; height: 100px; padding: 10px; font-size: 12px; border: 1px solid #ddd; border-radius: 9px; font-family: monospace; resize: vertical; margin-bottom: 8px; background: #fafafa; }
+.reco-card { border-radius: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid; }
+.reco-card.urgent { background: #FCEBEB; border-color: #f7c1c1; }
+.reco-card.attention { background: #FAEEDA; border-color: #FAC775; }
+.reco-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.reco-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.reco-title { font-size: 14px; font-weight: 500; flex: 1; }
+.reco-priority { font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+.priority-urgent { background: #A32D2D; color: white; }
+.priority-attention { background: #854F0B; color: white; }
+.reco-steps { list-style: none; padding: 0; }
+.reco-steps li { font-size: 13px; color: #444; padding: 5px 0 5px 18px; position: relative; line-height: 1.5; border-top: 1px solid rgba(0,0,0,0.05); }
+.reco-steps li:first-child { border-top: none; }
+.reco-steps li::before { content: "->"; position: absolute; left: 0; color: #999; font-size: 11px; top: 7px; }
+.pool-info { background: #f0faf6; border: 1px solid #c6e8d8; border-radius: 9px; padding: 9px 12px; margin-bottom: 14px; font-size: 12px; color: #0F6E56; display: flex; align-items: center; gap: 8px; }
+/* Mode saisie */
+.mode-selector { display: flex; gap: 8px; margin-bottom: 16px; }
+.mode-btn { flex: 1; padding: 10px 8px; font-size: 13px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 9px; color: #888; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s; }
+.mode-btn.active { background: #1D9E75; color: white; border-color: transparent; font-weight: 500; }
+.photo-upload-area { border: 2px dashed #ddd; border-radius: 12px; padding: 2rem 1rem; text-align: center; cursor: pointer; background: #fafafa; margin-bottom: 14px; }
+.photo-upload-area:active { background: #f0faf6; border-color: #1D9E75; }
+.analyzed-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; background: #f0faf6; color: #0F6E56; border: 1px solid #c6e8d8; border-radius: 9px; padding: 8px 12px; margin-bottom: 12px; }
+.analyze-status-box { background: #f0faf6; border: 1px solid #c6e8d8; border-radius: 9px; padding: 14px; text-align: center; margin-bottom: 12px; }
+.analyze-status-box.error { background: #FCEBEB; border-color: #f7c1c1; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinning { animation: spin 1s linear infinite; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1><i class="ti ti-droplet" style="color:#1D9E75"></i> Ma Piscine</h1>
+    <div class="date" id="header-date"></div>
+  </div>
+  <nav class="nav">
+    <button class="active" onclick="showSection('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Tableau</button>
+    <button onclick="showSection('saisie',this)"><i class="ti ti-edit"></i> Saisie</button>
+    <button onclick="showSection('recos',this)"><i class="ti ti-bulb"></i> Recos</button>
+    <button onclick="showSection('actions',this)"><i class="ti ti-flask"></i> Actions</button>
+    <button onclick="showSection('historique',this)"><i class="ti ti-history"></i> Historique</button>
+    <button onclick="showSection('donnees',this)"><i class="ti ti-database"></i> Donnees</button>
+  </nav>
+
+  <!-- TABLEAU -->
+  <div id="dashboard" class="section active">
+    <div id="dashboard-content"></div>
+  </div>
+
+  <!-- SAISIE -->
+  <div id="saisie" class="section">
+    <div class="section-title">Nouveau releve</div>
+
+    <div class="mode-selector">
+      <button class="mode-btn active" id="mode-manual-btn" onclick="setMode('manual')">
+        <i class="ti ti-edit"></i> Saisie manuelle
+      </button>
+      <button class="mode-btn" id="mode-photo-btn" onclick="setMode('photo')">
+        <i class="ti ti-camera"></i> Analyser une photo
+      </button>
+    </div>
+
+    <!-- Bloc photo -->
+    <div id="photo-bloc" style="display:none">
+      <div class="photo-upload-area" id="photo-upload-area">
+        <i class="ti ti-camera-plus" style="font-size:36px;color:#bbb;display:block;margin-bottom:10px"></i>
+        <div style="font-size:14px;color:#555;margin-bottom:14px">Analyser une bandelette AquaChek</div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button onclick="launchCamera()" style="flex:1;max-width:160px;padding:10px 8px;background:#1D9E75;color:white;border:none;border-radius:9px;font-size:13px;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+            <i class="ti ti-camera"></i> Prendre une photo
+          </button>
+          <button onclick="launchGallery()" style="flex:1;max-width:160px;padding:10px 8px;background:none;border:1px solid #ddd;border-radius:9px;font-size:13px;color:#555;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+            <i class="ti ti-photo"></i> Depuis la galerie
+          </button>
+        </div>
+      </div>
+      <input type="file" id="photo-input-camera" accept="image/*" capture="environment" style="display:none" onchange="analyzePhoto(this)">
+      <input type="file" id="photo-input-gallery" accept="image/*" style="display:none" onchange="analyzePhoto(this)">
+      <div id="photo-preview-bloc" style="display:none">
+        <img id="preview-img" style="width:100%;border-radius:10px;margin-bottom:10px;max-height:240px;object-fit:cover">
+        <button class="btn-secondary" style="margin-top:0;margin-bottom:12px" onclick="resetPhoto()"><i class="ti ti-refresh"></i> Changer de photo</button>
+      </div>
+      <div id="analyze-status-bloc" style="display:none">
+        <div class="analyze-status-box" id="analyze-status-inner">
+          <i class="ti ti-refresh spinning" id="analyze-icon" style="font-size:22px;color:#1D9E75"></i>
+          <div id="analyze-text" style="font-size:13px;color:#0F6E56;margin-top:6px">Analyse en cours...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloc manuel -->
+    <div id="manual-bloc">
+      <div id="analyzed-badge-slot"></div>
+
+      <div class="date-toggle" onclick="toggleManualDate()">
+        <input type="checkbox" id="manual-date-toggle" onchange="toggleManualDate()" onclick="event.stopPropagation()">
+        <label for="manual-date-toggle"><i class="ti ti-calendar"></i> Saisir une date manuellement</label>
+      </div>
+      <div class="date-manual" id="date-manual-section">
+        <div class="input-group"><label>Date du releve</label><input type="date" id="input-date"></div>
+      </div>
+      <div class="date-auto-display" id="date-auto-display">
+        <i class="ti ti-calendar-check" style="color:#1D9E75"></i><span id="date-auto-label"></span>
+      </div>
+
+      <div class="temp-row">
+        <label><i class="ti ti-thermometer" style="color:#E24B4A"></i> Temperature de l'eau</label>
+        <input type="number" id="input-temp" min="0" max="45" step="0.5" value="28">
+        <span style="font-size:14px;color:#777">deg C</span>
+      </div>
+      <div class="input-group"><label>pH <span style="font-size:11px;color:#bbb">(ideal : 7,2 - 7,6)</span></label><input type="number" id="input-ph" min="0" max="14" step="0.1" placeholder="ex. 7.4"></div>
+      <div class="input-group"><label>Chlore libre <span style="font-size:11px;color:#bbb">(mg/L - ideal : 1 - 3)</span></label><input type="number" id="input-chlore" min="0" max="20" step="0.1" placeholder="ex. 1.5"></div>
+      <div class="input-group"><label>Alcalinite (TAC) <span style="font-size:11px;color:#bbb">(mg/L - ideal : 80 - 120)</span></label><input type="number" id="input-tac" min="0" max="400" step="1" placeholder="ex. 100"></div>
+      <div class="input-group"><label>Stabilisateur <span style="font-size:11px;color:#bbb">(mg/L - ideal : 30 - 50)</span></label><input type="number" id="input-stab" min="0" max="200" step="1" placeholder="ex. 40"></div>
+      <button class="btn-primary" onclick="saveReading()"><i class="ti ti-device-floppy"></i> Enregistrer le releve</button>
+    </div>
+  </div>
+
+  <!-- RECOS -->
+  <div id="recos" class="section">
+    <div class="section-title">Recommandations personnalisees</div>
+    <div id="recos-content"></div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div id="actions" class="section">
+    <div class="section-title">Produits et dosages</div>
+    <div class="actions-list" id="actions-list"></div>
+  </div>
+
+  <!-- HISTORIQUE -->
+  <div id="historique" class="section">
+    <div class="section-title">Releves enregistres</div>
+    <div id="history-list" class="history-list"></div>
+  </div>
+
+  <!-- DONNEES -->
+  <div id="donnees" class="section">
+    <div class="section-title">Sauvegarde et restauration</div>
+    <div class="info-box">
+      <p><i class="ti ti-download" style="color:#1D9E75"></i> <strong>Exporter</strong> - Telecharge un fichier JSON avec tous tes releves.</p>
+      <button class="btn-primary" onclick="exportData()"><i class="ti ti-download"></i> Telecharger mes releves (JSON)</button>
+    </div>
+    <div class="info-box">
+      <p><i class="ti ti-upload" style="color:#185FA5"></i> <strong>Importer</strong> - Colle le contenu d'un fichier JSON pour restaurer tes donnees.</p>
+      <textarea class="import-area" id="import-area" placeholder="Colle le contenu JSON ici..."></textarea>
+      <button class="btn-secondary" onclick="importData()"><i class="ti ti-upload"></i> Importer les donnees</button>
+    </div>
+    <div class="info-box">
+      <p><i class="ti ti-trash" style="color:#A32D2D"></i> <strong>Effacer</strong> - Supprime tous les releves sur cet appareil.</p>
+      <button class="btn-secondary" style="color:#A32D2D;border-color:#f7c1c1" onclick="clearData()"><i class="ti ti-trash"></i> Effacer toutes les donnees</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+    <div class="modal" id="modal-content"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+var STORAGE_KEY = 'pool_readings_v1';
+var POOL_VOL = 25;
+var POOL_DIMS = '6m x 3m x 1,4m';
+
+var PARAMS = {
+  ph:     { label:'pH',     unit:'',     min:7.2, max:7.6,  decimals:1 },
+  chlore: { label:'Chlore', unit:'mg/L', min:1,   max:3,    decimals:1 },
+  tac:    { label:'TAC',    unit:'mg/L', min:80,  max:120,  decimals:0 },
+  stab:   { label:'Stab.',  unit:'mg/L', min:30,  max:50,   decimals:0 },
+  temp:   { label:'Temp.',  unit:'C',    min:10,  max:32,   decimals:1 }
+};
+
+var ACTIONS = [
+  { id:'ph_moins',     name:'Reducteur de pH',       product:'pH minus (acide)',        icon:'ti-arrow-down',    color:'#E6F1FB', iconColor:'#185FA5', desc:'pH superieur a 7,6',               trigger:function(r){return r.ph>7.6;},    dose:function(r,v){return Math.round((r.ph-7.6)*v*0.18)+' g pour '+v+' m3';} },
+  { id:'ph_plus',      name:'Rehausseur de pH',       product:'pH plus (soude)',         icon:'ti-arrow-up',      color:'#FAECE7', iconColor:'#993C1D', desc:'pH inferieur a 7,2',               trigger:function(r){return r.ph<7.2;},    dose:function(r,v){return Math.round((7.2-r.ph)*v*0.18)+' g pour '+v+' m3';} },
+  { id:'chlore_choc',  name:'Chlore choc',            product:'Chlore granules/liquide', icon:'ti-bolt',          color:'#EAF3DE', iconColor:'#3B6D11', desc:'Chlore inferieur a 1 mg/L',        trigger:function(r){return r.chlore<1;},  dose:function(r,v){return Math.round((1-r.chlore)*v*10)+' g pour '+v+' m3';} },
+  { id:'chlore_pause', name:'Reduire le chlore',      product:'Aerer, ne pas ajouter',  icon:'ti-wind',          color:'#FBEAF0', iconColor:'#993556', desc:'Chlore trop eleve (> 3 mg/L)',     trigger:function(r){return r.chlore>3;},  dose:function(){return 'Arreter la production 24-48h';} },
+  { id:'tac_up',       name:"Rehausser l'alcalinite", product:'Bicarbonate de soude',   icon:'ti-trending-up',   color:'#FAEEDA', iconColor:'#854F0B', desc:'TAC inferieur a 80 mg/L',          trigger:function(r){return r.tac<80;},    dose:function(r,v){return Math.round((80-r.tac)*v*0.016)+' g pour '+v+' m3';} },
+  { id:'tac_down',     name:"Reduire l'alcalinite",   product:'Acide chlorhydrique',    icon:'ti-trending-down', color:'#FCEBEB', iconColor:'#A32D2D', desc:'TAC superieur a 120 mg/L',         trigger:function(r){return r.tac>120;},   dose:function(r,v){return Math.round((r.tac-120)*v*0.012)+' mL pour '+v+' m3';} },
+  { id:'stab_add',     name:'Ajouter stabilisateur',  product:'Acide cyanurique',       icon:'ti-shield',        color:'#E1F5EE', iconColor:'#0F6E56', desc:'Stabilisateur inferieur a 30',     trigger:function(r){return r.stab<30;},   dose:function(r,v){return ((30-r.stab)*v*0.001).toFixed(1)+' kg pour '+v+' m3';} },
+  { id:'stab_dillute', name:"Diluer l'eau",           product:'Vidange partielle',      icon:'ti-droplet-off',   color:'#F1EFE8', iconColor:'#5F5E5A', desc:'Stabilisateur trop eleve (> 50)',  trigger:function(r){return r.stab>50;},   dose:function(r,v){return 'Vidanger ~'+Math.round(v*(r.stab-50)/r.stab/5)*5+'% du bassin';} }
+];
+
+function load() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); } catch(e) { return []; } }
+function save(arr) { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+function todayISO() { return new Date().toISOString().split('T')[0]; }
+function isToday(iso) { return iso === todayISO(); }
+function formatDate(iso) { return new Date(iso+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long',year:'numeric'}); }
+function lastReading() { var r=load(); return r.length?r.slice().sort(function(a,b){return a.date.localeCompare(b.date);})[r.length-1]:null; }
+function getStatus(key,val) {
+  var p=PARAMS[key];
+  if(val===null||val===undefined||isNaN(val)) return 'neutral';
+  if(val>=p.min&&val<=p.max) return 'ok';
+  return Math.min(Math.abs(val<p.min?val-p.min:val-p.max)/(p.max-p.min),1)>0.3?'danger':'warn';
+}
+function statusLabel(st) { return {ok:'Optimal',warn:'Attention',danger:'Hors norme',neutral:'-'}[st]; }
+
+function renderDashboard() {
+  var last=lastReading(), el=document.getElementById('dashboard-content');
+  if(!last) { el.innerHTML='<div class="empty-state"><i class="ti ti-droplet" style="font-size:44px;color:#ddd;display:block;margin-bottom:12px"></i>Aucun releve enregistre.<br>Saisissez votre premier releve !</div>'; return; }
+  var grid='';
+  var keys=['ph','chlore','tac','stab'];
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i], p=PARAMS[k], val=last[k], st=getStatus(k,val);
+    var disp=(val!==null&&!isNaN(val))?Number(val).toFixed(p.decimals):'-';
+    grid+='<div class="param-card '+st+'"><div class="param-label">'+p.label+'</div><div class="param-value-row"><span class="param-value">'+disp+'</span><span class="param-unit">'+p.unit+'</span></div><div class="param-status status-'+st+'">'+statusLabel(st)+'</div></div>';
+  }
+  var tempDisp=last.temp!=null&&!isNaN(last.temp)?Number(last.temp).toFixed(1)+' C':'-';
+  var alerts=ACTIONS.filter(function(a){return a.trigger(last);});
+  var alertHtml=alerts.length>0
+    ?'<div class="alert-box alert-warn"><div style="font-size:12px;font-weight:500;color:#854F0B;margin-bottom:4px"><i class="ti ti-alert-triangle"></i> '+alerts.length+' correction'+(alerts.length>1?'s':'')+' necessaire'+(alerts.length>1?'s':'')+' - voir Recos</div>'+alerts.map(function(a){return '<div style="font-size:12px;color:#854F0B;padding-top:2px">- '+a.name+'</div>';}).join('')+'</div>'
+    :'<div class="alert-box alert-ok"><div style="font-size:12px;font-weight:500;color:#3B6D11"><i class="ti ti-circle-check"></i> Tous les parametres sont dans les normes</div></div>';
+  var pastBadge=!isToday(last.date)?'<span class="badge-past">releve passe</span>':'';
+  el.innerHTML='<div style="font-size:12px;color:#777;margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap;gap:6px"><i class="ti ti-calendar"></i> Dernier releve : '+formatDate(last.date)+' '+pastBadge+'</div>'
+    +'<div style="font-size:12px;color:#555;margin-bottom:10px"><i class="ti ti-thermometer" style="color:#E24B4A"></i> Temperature : <strong>'+tempDisp+'</strong></div>'
+    +alertHtml+'<div class="section-title">Parametres</div><div class="param-grid">'+grid+'</div>';
+}
+
+function renderRecos() {
+  var last=lastReading(), el=document.getElementById('recos-content');
+  if(!last) { el.innerHTML='<div class="empty-state"><i class="ti ti-bulb" style="font-size:40px;color:#ddd;display:block;margin-bottom:12px"></i>Saisissez d\'abord un releve.</div>'; return; }
+  var temp=last.temp||28;
+  var recos=[];
+
+  if(last.ph>7.6) {
+    var dose=Math.round((last.ph-7.6)*POOL_VOL*0.18);
+    recos.push({level:'urgent',icon:'ti-arrow-down',iconBg:'#E6F1FB',iconColor:'#185FA5',title:'Baisser le pH ('+Number(last.ph).toFixed(1)+')',steps:[
+      'Verser '+dose+' g de pH minus dans le bassin.',
+      'Diluer dans un seau d\'eau avant ajout, cote skimmer.',
+      'Filtration en marche 2h minimum.',
+      'Retester dans 4-6h avant baignade.',
+      temp>28?'Eau chaude ('+temp+' C) : le pH remonte vite, surveiller chaque jour.':null
+    ]});
+  } else if(last.ph<7.2) {
+    var dose=Math.round((7.2-last.ph)*POOL_VOL*0.18);
+    recos.push({level:'urgent',icon:'ti-arrow-up',iconBg:'#FAECE7',iconColor:'#993C1D',title:'Remonter le pH ('+Number(last.ph).toFixed(1)+')',steps:[
+      'Verser '+dose+' g de pH plus dans le bassin.',
+      'Diluer dans un seau d\'eau avant ajout.',
+      'Filtration en marche 2h.',
+      'Contrôler a nouveau dans 6h.'
+    ]});
+  }
+
+  if(last.chlore<1) {
+    var dose=Math.round((1-last.chlore)*POOL_VOL*10);
+    recos.push({level:'urgent',icon:'ti-bolt',iconBg:'#EAF3DE',iconColor:'#3B6D11',title:'Chlore insuffisant ('+Number(last.chlore).toFixed(1)+' mg/L)',steps:[
+      'Traitement choc : verser '+dose+' g de chlore granule.',
+      'De preference le soir, hors baignade.',
+      'Filtration en marche 8h minimum.',
+      'Ne pas se baigner tant que le chlore depasse 3 mg/L.',
+      temp>28?'A '+temp+' C le chlore se degrade vite - verifier le stabilisateur.':null
+    ]});
+  } else if(last.chlore>3) {
+    recos.push({level:'attention',icon:'ti-wind',iconBg:'#FBEAF0',iconColor:'#993556',title:'Chlore trop eleve ('+Number(last.chlore).toFixed(1)+' mg/L)',steps:[
+      'Arreter tout ajout de chlore.',
+      'Laisser filtrer et exposer l\'eau au soleil.',
+      temp>25?'A '+temp+' C, retour a la normale en 24-48h.':'Le chlore mettra 48-72h a se dissiper.',
+      'Ne pas se baigner au-dessus de 3 mg/L.',
+      'Verifier a nouveau dans 24h.'
+    ]});
+  }
+
+  if(last.tac<80) {
+    var dose=Math.round((80-last.tac)*POOL_VOL*0.016);
+    recos.push({level:'attention',icon:'ti-trending-up',iconBg:'#FAEEDA',iconColor:'#854F0B',title:'Alcalinite trop basse ('+last.tac+' mg/L)',steps:[
+      'Verser '+dose+' g de bicarbonate de soude.',
+      'Repartir sur toute la surface, filtration en marche.',
+      'Attendre 4h avant de retester.',
+      'Corriger le TAC avant le pH - le TAC stabilise le pH.'
+    ]});
+  } else if(last.tac>120) {
+    var dose=Math.round((last.tac-120)*POOL_VOL*0.012);
+    recos.push({level:'attention',icon:'ti-trending-down',iconBg:'#FCEBEB',iconColor:'#A32D2D',title:'Alcalinite trop haute ('+last.tac+' mg/L)',steps:[
+      'Verser '+dose+' mL d\'acide chlorhydrique dilue, cote skimmer.',
+      'Proceder en plusieurs petites doses.',
+      'Attendre 4h entre chaque ajout et retester.',
+      'Ne jamais melanger les produits chimiques.'
+    ]});
+  }
+
+  if(last.stab<30) {
+    var dose=((30-last.stab)*POOL_VOL*0.001).toFixed(1);
+    recos.push({level:'attention',icon:'ti-shield',iconBg:'#E1F5EE',iconColor:'#0F6E56',title:'Stabilisateur insuffisant ('+last.stab+' mg/L)',steps:[
+      'Ajouter '+dose+' kg d\'acide cyanurique.',
+      'Dissoudre dans un seau d\'eau chaude avant ajout.',
+      'Verser lentement pres d\'un skimmer, filtration en marche.',
+      'Compter 24-48h pour une mesure stable.',
+      temp>28?'Urgent : a '+temp+' C sans stabilisateur, le chlore s\'evapore en quelques heures.':null
+    ]});
+  } else if(last.stab>50) {
+    var pct=Math.round(POOL_VOL*(last.stab-50)/last.stab/5)*5;
+    var vol3=Math.round(POOL_VOL*pct/100);
+    recos.push({level:'attention',icon:'ti-droplet-off',iconBg:'#F1EFE8',iconColor:'#5F5E5A',title:'Stabilisateur trop eleve ('+last.stab+' mg/L)',steps:[
+      'Seule la dilution fonctionne, pas de solution chimique.',
+      'Vidanger environ '+pct+'% du bassin (soit ~'+vol3+' m3).',
+      'Remplir avec de l\'eau fraiche puis retester.',
+      'Un stabilisateur trop eleve bloque l\'efficacite du chlore.'
+    ]});
+  }
+
+  if(temp>30) {
+    recos.push({level:'attention',icon:'ti-thermometer',iconBg:'#FFF0E6',iconColor:'#CC5500',title:'Eau tres chaude ('+temp+' C) - vigilance renforcee',steps:[
+      'A '+temp+' C, les bacteries se multiplient 2x plus vite.',
+      'Tester chlore et pH tous les jours.',
+      'Viser un chlore entre 2 et 3 mg/L.',
+      'Traitement choc hebdomadaire recommande.',
+      'Verifier le filtre plus souvent.'
+    ]});
+  }
+
+  if(!recos.length) {
+    el.innerHTML='<div class="pool-info"><i class="ti ti-info-circle"></i> Piscine '+POOL_DIMS+' - '+POOL_VOL+' m3 - eau a '+temp+' C</div>'
+      +'<div style="text-align:center;padding:2rem 1rem"><i class="ti ti-circle-check" style="font-size:44px;color:#1D9E75;display:block;margin-bottom:12px"></i><strong style="color:#0F6E56;font-size:16px">Tout est bon !</strong><p style="font-size:13px;color:#666;margin-top:10px">Aucune correction necessaire.<br>Prochain test dans 2-3 jours'+(temp>28?' (eau chaude : surveiller souvent)':'')+'.</p></div>';
+    return;
+  }
+
+  recos.sort(function(a,b){return a.level==='urgent'?-1:1;});
+  var html='<div class="pool-info"><i class="ti ti-info-circle"></i> Piscine '+POOL_DIMS+' - '+POOL_VOL+' m3 - eau a '+temp+' C</div>';
+  for(var i=0;i<recos.length;i++){
+    var r=recos[i];
+    var steps=r.steps.filter(function(s){return s;});
+    html+='<div class="reco-card '+r.level+'">'
+      +'<div class="reco-header">'
+      +'<div class="reco-icon" style="background:'+r.iconBg+'"><i class="ti '+r.icon+'" style="color:'+r.iconColor+'"></i></div>'
+      +'<div class="reco-title">'+r.title+'</div>'
+      +'<span class="reco-priority priority-'+r.level+'">'+(r.level==='urgent'?'Urgent':'Attention')+'</span>'
+      +'</div>'
+      +'<ul class="reco-steps">'+steps.map(function(s){return '<li>'+s+'</li>';}).join('')+'</ul>'
+      +'</div>';
+  }
+  el.innerHTML=html;
+}
+
+function renderActions() {
+  var last=lastReading(), el=document.getElementById('actions-list');
+  if(!last) { el.innerHTML='<div class="empty-state">Saisissez d\'abord un releve.</div>'; return; }
+  var html='<div style="font-size:12px;color:#aaa;margin-bottom:10px">Dosages pour <strong style="color:#555">'+POOL_VOL+' m3</strong> ('+POOL_DIMS+') - dernier releve.</div>';
+  for(var i=0;i<ACTIONS.length;i++){
+    var a=ACTIONS[i], active=a.trigger(last);
+    html+='<div class="action-card" onclick="openAction(\''+a.id+'\')">'
+      +'<div class="action-header"><div class="action-icon" style="background:'+a.color+'"><i class="ti '+a.icon+'" style="color:'+a.iconColor+'"></i></div>'
+      +'<div><div class="action-name">'+a.name+'</div><div style="font-size:11px;color:'+(active?'#A32D2D':'#ccc')+';margin-top:1px">'+(active?'Recommande':'Non necessaire')+'</div></div></div>'
+      +'<div class="action-desc">'+a.desc+'</div>'
+      +'<div class="action-dose" style="color:'+a.iconColor+'">'+a.dose(last,POOL_VOL)+'</div></div>';
+  }
+  el.innerHTML=html;
+}
+
+function renderHistory() {
+  var readings=load(), el=document.getElementById('history-list');
+  if(!readings.length) { el.innerHTML='<div class="empty-state">Aucun releve enregistre.</div>'; return; }
+  var sorted=readings.slice().sort(function(a,b){return b.date.localeCompare(a.date);});
+  var html='';
+  for(var i=0;i<sorted.length;i++){
+    var r=sorted[i];
+    var allR=load();
+    var idx=allR.findIndex(function(x){return x.date===r.date&&x.ph===r.ph&&x.chlore===r.chlore&&x.tac===r.tac&&x.stab===r.stab&&x.temp===r.temp;});
+    var params='';
+    var pkeys=['ph','chlore','tac','stab','temp'];
+    for(var j=0;j<pkeys.length;j++){
+      var k=pkeys[j], p=PARAMS[k], val=r[k];
+      var st=k==='temp'?'neutral':getStatus(k,val);
+      var disp=(val!==null&&val!==undefined&&!isNaN(val))?Number(val).toFixed(p.decimals):'-';
+      var color=st==='ok'?'#0F6E56':st==='warn'?'#854F0B':st==='danger'?'#A32D2D':'#333';
+      params+='<div class="history-param"><div class="hp-val" style="color:'+color+'">'+disp+(k==='temp'?'°':'')+'</div><div class="hp-label">'+p.label+'</div></div>';
+    }
+    var badge=isToday(r.date)?'<span class="badge-today"><i class="ti ti-circle-check"></i> auj.</span>':'<span class="badge-past">historique</span>';
+    html+='<div class="history-item">'
+      +'<div class="history-date"><span><i class="ti ti-calendar"></i> '+formatDate(r.date)+'</span>'+badge+'</div>'
+      +'<div class="history-params">'+params+'</div>'
+      +'<div class="history-actions">'
+      +'<button class="btn-edit" onclick="openEditModal('+idx+')"><i class="ti ti-edit"></i> Modifier</button>'
+      +'<button class="btn-delete" onclick="deleteReading('+idx+')"><i class="ti ti-trash"></i></button>'
+      +'</div></div>';
+  }
+  el.innerHTML=html;
+}
+
+function openEditModal(idx) {
+  var readings=load(), r=readings[idx];
+  if(!r) return;
+  document.getElementById('modal-content').innerHTML=
+    '<h3>Modifier le releve</h3><div class="modal-sub">'+formatDate(r.date)+'</div>'
+    +'<div class="modal-field"><label>Date</label><input type="date" id="edit-date" value="'+r.date+'"></div>'
+    +'<div class="modal-field"><label>Temperature (C)</label><input type="number" id="edit-temp" min="0" max="45" step="0.5" value="'+(r.temp!=null?r.temp:28)+'"></div>'
+    +'<div class="modal-field"><label>pH</label><input type="number" id="edit-ph" min="0" max="14" step="0.1" value="'+(r.ph!=null?r.ph:'')+'"></div>'
+    +'<div class="modal-field"><label>Chlore libre (mg/L)</label><input type="number" id="edit-chlore" min="0" max="20" step="0.1" value="'+(r.chlore!=null?r.chlore:'')+'"></div>'
+    +'<div class="modal-field"><label>TAC (mg/L)</label><input type="number" id="edit-tac" min="0" max="400" step="1" value="'+(r.tac!=null?r.tac:'')+'"></div>'
+    +'<div class="modal-field"><label>Stabilisateur (mg/L)</label><input type="number" id="edit-stab" min="0" max="200" step="1" value="'+(r.stab!=null?r.stab:'')+'"></div>'
+    +'<div class="modal-actions"><button onclick="closeModal()">Annuler</button><button class="btn-confirm" onclick="saveEdit('+idx+')"><i class="ti ti-check"></i> Enregistrer</button></div>';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function saveEdit(idx) {
+  var readings=load();
+  var date=document.getElementById('edit-date').value;
+  var temp=parseFloat(document.getElementById('edit-temp').value);
+  var ph=parseFloat(document.getElementById('edit-ph').value);
+  var chlore=parseFloat(document.getElementById('edit-chlore').value);
+  var tac=parseFloat(document.getElementById('edit-tac').value);
+  var stab=parseFloat(document.getElementById('edit-stab').value);
+  if(!date){showToast('Date invalide','#EF9F27');return;}
+  readings[idx]={date:date,temp:isNaN(temp)?28:temp,ph:isNaN(ph)?null:ph,chlore:isNaN(chlore)?null:chlore,tac:isNaN(tac)?null:tac,stab:isNaN(stab)?null:stab};
+  save(readings); closeModal();
+  renderDashboard(); renderActions(); renderHistory(); renderRecos();
+  showToast('Releve modifie !');
+}
+
+function deleteReading(idx) {
+  document.getElementById('modal-content').innerHTML=
+    '<h3>Supprimer ce releve ?</h3><div class="modal-sub" style="margin-bottom:1.5rem">Cette action est irreversible.</div>'
+    +'<div class="modal-actions"><button onclick="closeModal()">Annuler</button><button class="btn-danger" onclick="confirmDelete('+idx+')"><i class="ti ti-trash"></i> Supprimer</button></div>';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function confirmDelete(idx) {
+  var readings=load(); readings.splice(idx,1); save(readings); closeModal();
+  renderDashboard(); renderActions(); renderHistory(); renderRecos();
+  showToast('Releve supprime');
+}
+
+function toggleManualDate() {
+  var cb=document.getElementById('manual-date-toggle');
+  var sec=document.getElementById('date-manual-section');
+  var auto=document.getElementById('date-auto-display');
+  if(cb.checked){sec.classList.add('show');auto.style.display='none';if(!document.getElementById('input-date').value)document.getElementById('input-date').value=todayISO();}
+  else{sec.classList.remove('show');auto.style.display='flex';}
+}
+
+function saveReading() {
+  var temp=parseFloat(document.getElementById('input-temp').value)||28;
+  var ph=parseFloat(document.getElementById('input-ph').value);
+  var chlore=parseFloat(document.getElementById('input-chlore').value);
+  var tac=parseFloat(document.getElementById('input-tac').value);
+  var stab=parseFloat(document.getElementById('input-stab').value);
+  if([ph,chlore,tac,stab].every(function(v){return isNaN(v);})){showToast('Saisissez au moins un parametre','#EF9F27');return;}
+  var useManual=document.getElementById('manual-date-toggle').checked;
+  var dateVal=todayISO();
+  if(useManual){var v=document.getElementById('input-date').value;if(!v){showToast('Date invalide','#EF9F27');return;}dateVal=v;}
+  var readings=load();
+  readings.push({date:dateVal,temp:temp,ph:isNaN(ph)?null:ph,chlore:isNaN(chlore)?null:chlore,tac:isNaN(tac)?null:tac,stab:isNaN(stab)?null:stab});
+  save(readings);
+  document.getElementById('input-temp').value=28;
+  ['input-ph','input-chlore','input-tac','input-stab'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('manual-date-toggle').checked=false;
+  document.getElementById('date-manual-section').classList.remove('show');
+  document.getElementById('date-auto-display').style.display='flex';
+  var badge=document.getElementById('analyzed-badge-slot');
+  if(badge) badge.innerHTML='';
+  renderDashboard(); renderActions(); renderHistory(); renderRecos();
+  showToast(isToday(dateVal)?'Releve enregistre !':'Releve du '+formatDate(dateVal)+' enregistre !');
+  showSection('dashboard',document.querySelector('.nav button'));
+}
+
+function openAction(id) {
+  var a=null;
+  for(var i=0;i<ACTIONS.length;i++){if(ACTIONS[i].id===id){a=ACTIONS[i];break;}}
+  if(!a) return;
+  var last=lastReading(), dose=last?a.dose(last,POOL_VOL):'-';
+  document.getElementById('modal-content').innerHTML=
+    '<h3>'+a.name+'</h3><div class="modal-sub">'+a.product+'</div>'
+    +'<div style="background:#f8f8f8;border-radius:9px;padding:10px 12px;margin-bottom:1rem">'
+    +'<div style="font-size:12px;color:#aaa;margin-bottom:2px">Dosage recommande</div>'
+    +'<div style="font-size:16px;font-weight:500" id="modal-dose-result">'+dose+'</div></div>'
+    +'<div class="modal-field"><label>Adapter au volume (m3)</label><input type="number" id="modal-vol" value="'+POOL_VOL+'" min="1" max="500" oninput="updateModalDose(\''+id+'\')" ></div>'
+    +'<div style="font-size:12px;color:#aaa;line-height:1.6;padding:10px 0;border-top:1px solid #f0f0f0;margin-top:8px"><strong style="color:#555">Mode d\'emploi :</strong> Diluer dans un seau d\'eau avant ajout. Ne jamais melanger les produits. Attendre 4h avant baignade.</div>'
+    +'<div class="modal-actions"><button onclick="closeModal()">Fermer</button></div>';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function updateModalDose(id) {
+  var vol=parseFloat(document.getElementById('modal-vol').value)||POOL_VOL;
+  var a=null; for(var i=0;i<ACTIONS.length;i++){if(ACTIONS[i].id===id){a=ACTIONS[i];break;}}
+  var last=lastReading();
+  if(last&&a) document.getElementById('modal-dose-result').textContent=a.dose(last,vol);
+}
+
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function closeModalOutside(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+
+function exportData() {
+  var readings=load();
+  if(!readings.length){showToast('Aucune donnee a exporter','#EF9F27');return;}
+  var blob=new Blob([JSON.stringify(readings,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='piscine_releves_'+todayISO()+'.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Fichier telecharge !');
+}
+
+function importData() {
+  var text=document.getElementById('import-area').value.trim();
+  if(!text){showToast('Colle ton JSON ici','#EF9F27');return;}
+  try{
+    var parsed=JSON.parse(text);
+    if(!Array.isArray(parsed)) throw new Error();
+    var existing=load();
+    var keys=new Set(existing.map(function(r){return r.date+'|'+r.ph+'|'+r.chlore+'|'+r.tac+'|'+r.stab;}));
+    var added=0;
+    parsed.forEach(function(r){var k=r.date+'|'+r.ph+'|'+r.chlore+'|'+r.tac+'|'+r.stab;if(!keys.has(k)){existing.push(r);added++;}});
+    save(existing);
+    document.getElementById('import-area').value='';
+    renderDashboard(); renderActions(); renderHistory(); renderRecos();
+    showToast(added+' releve(s) importe(s) !');
+  }catch(e){showToast('JSON invalide','#A32D2D');}
+}
+
+function clearData() {
+  if(!confirm('Supprimer tous les releves ?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  renderDashboard(); renderActions(); renderHistory(); renderRecos();
+  showToast('Donnees effacees');
+}
+
+function showToast(msg,color) {
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=color||'#1D9E75';
+  t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2500);
+}
+
+function showSection(id,btn) {
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.nav button').forEach(function(b){b.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='recos') renderRecos();
+}
+
+// ---- PHOTO MODE ----
+function setMode(mode) {
+  document.getElementById('mode-manual-btn').classList.toggle('active', mode==='manual');
+  document.getElementById('mode-photo-btn').classList.toggle('active', mode==='photo');
+  document.getElementById('photo-bloc').style.display = mode==='photo' ? 'block' : 'none';
+  document.getElementById('manual-bloc').style.display = mode==='manual' ? 'block' : 'none';
+}
+
+function resetPhoto() {
+  document.getElementById('photo-input-camera').value='';
+  document.getElementById('photo-input-gallery').value='';
+  document.getElementById('photo-preview-bloc').style.display='none';
+  document.getElementById('photo-upload-area').style.display='block';
+  document.getElementById('analyze-status-bloc').style.display='none';
+}
+
+function launchCamera() {
+  document.getElementById('photo-input-camera').click();
+}
+
+function launchGallery() {
+  document.getElementById('photo-input-gallery').click();
+}
+
+function analyzePhoto(input) {
+  var file=input.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e) {
+    document.getElementById('preview-img').src=e.target.result;
+    document.getElementById('photo-preview-bloc').style.display='block';
+    document.getElementById('photo-upload-area').style.display='none';
+    document.getElementById('analyze-status-bloc').style.display='block';
+    var icon=document.getElementById('analyze-icon');
+    var text=document.getElementById('analyze-text');
+    var box=document.getElementById('analyze-status-inner');
+    icon.className='ti ti-refresh spinning';
+    icon.style.color='#1D9E75';
+    text.textContent='Analyse en cours...';
+    text.style.color='#0F6E56';
+    box.className='analyze-status-box';
+
+    var base64=e.target.result.split(',')[1];
+    var mediaType=file.type||'image/jpeg';
+
+    fetch('/.netlify/functions/analyze', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({base64:base64,mediaType:mediaType})
+    })
+    .then(function(res){return res.json();})
+    .then(function(result){
+      if(result.error) throw new Error(result.error);
+      if(result.ph!=null&&!isNaN(result.ph)) document.getElementById('input-ph').value=result.ph;
+      if(result.chlore!=null&&!isNaN(result.chlore)) document.getElementById('input-chlore').value=result.chlore;
+      if(result.tac!=null&&!isNaN(result.tac)) document.getElementById('input-tac').value=result.tac;
+      if(result.stab!=null&&!isNaN(result.stab)) document.getElementById('input-stab').value=result.stab;
+      icon.className='ti ti-circle-check';
+      icon.style.color='#1D9E75';
+      text.textContent=result.notes||'Analyse terminee - valeurs pre-remplies';
+      text.style.color='#0F6E56';
+      setTimeout(function(){
+        setMode('manual');
+        var slot=document.getElementById('analyzed-badge-slot');
+        slot.innerHTML='<div class="analyzed-badge"><i class="ti ti-camera-check"></i> Valeurs depuis photo - verifier avant enregistrement</div>';
+      },1500);
+    })
+    .catch(function(err){
+      icon.className='ti ti-alert-circle';
+      icon.style.color='#A32D2D';
+      text.textContent='Erreur - saisissez manuellement';
+      text.style.color='#A32D2D';
+      box.className='analyze-status-box error';
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+// ---- INIT ----
+var todayStr=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('header-date').textContent=todayStr;
+document.getElementById('date-auto-label').textContent="Aujourd'hui - "+todayStr;
+renderDashboard(); renderActions(); renderHistory(); renderRecos();
+</script>
+</body>
+</html>
